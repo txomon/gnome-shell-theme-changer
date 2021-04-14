@@ -10,18 +10,6 @@ const { Gio, GObject, St } = imports.gi;
 
 const Ce = imports.misc.extensionUtils.getCurrentExtension();
 
-function getTheme (kind) {
-	let GioSSS = Gio.SettingsSchemaSource;
-	let schemaSource = GioSSS.new_from_directory(Ce.dir.get_child("schemas").get_path(), GioSSS.get_default(), false);
-	let schemaObj = schemaSource.lookup('org.gnome.shell.extensions.theme-switcher', true);
-	if (!schemaObj) {
-		throw new Error('cannot find schemas');
-	}
-	settings = new Gio.Settings({ settings_schema : schemaObj });
-	return settings.get_string(kind)
-}
-
-
 const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 
@@ -36,15 +24,27 @@ class ThemeIndicator extends PanelMenu.Button {
 	_init() {
 		super._init(0.0, 'Theme Switcher');
 
+		// UI initialization
 		this.hbox = new St.BoxLayout({ style_class: 'panel-button', visible: true, reactive: true, can_focus: true, track_hover: true });
 		this.icon = new St.Icon({ icon_name: 'dialog-warning-symbolic', style_class: 'system-status-icon' });
 
+		// Source of data
 		this.schema = Gio.Settings.new('org.gnome.desktop.interface');
+
+		// Settings
+		let GioSSS = Gio.SettingsSchemaSource;
+		let schemaSource = GioSSS.new_from_directory(Ce.dir.get_child("schemas").get_path(), GioSSS.get_default(), false);
+		let schemaObj = schemaSource.lookup('org.gnome.shell.extensions.theme-switcher', true);
+		if (!schemaObj) {
+			throw new Error('cannot find schemas');
+		}
+		this.settings = new Gio.Settings({ settings_schema : schemaObj });
+
 		switch (this.schema.get_string('gtk-theme')) {
-			case getTheme(LIGHT_THEME_SETTING_NAME):
+			case this.settings.get_string(LIGHT_THEME_SETTING_NAME):
 				this.icon.icon_name = LIGHT_THEME_ICON;
 			break;
-			case getTheme(DARK_THEME_SETTING_NAME):
+			case this.settings.get_string(DARK_THEME_SETTING_NAME):
 				this.icon.icon_name = DARK_THEME_ICON;
 			break;
 			default:
@@ -57,14 +57,16 @@ class ThemeIndicator extends PanelMenu.Button {
 	}
 
 	_toggle_theme() {
+	    let lightTheme = this.settings.get_string(LIGHT_THEME_SETTING_NAME)
+		let darkTheme = this.settings.get_string(DARK_THEME_SETTING_NAME)
 		switch (this.schema.get_string('gtk-theme')) {
-			case LIGHT_THEME_SETTING_NAME:
-				this.schema.set_string("gtk-theme", DARK_THEME_SETTING_NAME);
+			case lightTheme:
+				this.schema.set_string("gtk-theme", darkTheme);
 				this.icon.icon_name = DARK_THEME_ICON;
 			break;
 			// If theme is dark or unknown, switch to light theme
 			default:
-				this.schema.set_string("gtk-theme", LIGHT_THEME_SETTING_NAME);
+				this.schema.set_string("gtk-theme", lightTheme);
 				this.icon.icon_name = LIGHT_THEME_ICON;
 		};
 	}
