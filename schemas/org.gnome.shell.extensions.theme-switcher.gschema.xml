@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+    <schema id="org.gnome.shell.extensions.theme-switcher"
+            path="/org/gnome/shell/extensions/theme-switcher/">
+
+        <key type="s" name="light-theme">
+            <default>"Adwaita"</default>
+            <summary>Theme to switch to when light mode is selected</summary>
+        </key>
+
+        <key type="s" name="dark-theme">
+            <default>"Adwaita-dark"</default>
+            <summary>Theme to switch to when dark mode is selected</summary>
+        </key>
+    </schema>
+
+</schemalist>
